@@ -211,7 +211,7 @@ classdef MSPCA < handle
                 end
             elseif mod(markTor,1)==0
                 for m = 1:1:2
-                    [~,I] = sort(abs(coeff(:,m)),'descent');
+                    [~,I] = sort(abs(coeff(:,m)),'descend');
                     ids{m} = I(1:markTor);
                 end
             else
