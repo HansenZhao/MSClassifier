@@ -116,6 +116,10 @@ classdef MSPCA < handle
             obj.MSMat(1:obj.nMS,1:obj.nPeaks) = tmp;
         end
         
+        function [names,tag] = getTag(obj)
+            names = unique(obj.MSName);
+            tag = nameList2tags(obj.MSName);
+        end
         function [coeff,score,latent] = plotPCA(obj,isNormal,minInfo)
             obj.sortMS();
             tag = nameList2tags(obj.MSName);
@@ -174,6 +178,27 @@ classdef MSPCA < handle
                     obj.score = score;
                     return;
                 end
+            end
+               
+        end
+        
+        function [Y] = plotTSNE(obj,isNormal)
+            obj.sortMS();
+            tag = nameList2tags(obj.MSName);
+            x = obj.MSMat(1:obj.nMS,1:obj.nPeaks);
+            %%
+            %x = x - repmat(mean(x),obj.nMS,1)./repmat(std(x),obj.nMS,1);
+            if isNormal
+                x = x./repmat(max(x,[],2),1,obj.nPeaks);
+            end
+            %%
+            distance = {'cosine','chebychev','euclidean'};
+            figure('Position',[0,0,1600,400]);
+            for m = 1:1:3
+                Y = tsne(x,'Algorithm','exact','Distance',distance{m});
+                subplot(1,3,m);
+                gscatter(Y(:,1),Y(:,2),tag);
+                title(distance{m});
             end
                
         end

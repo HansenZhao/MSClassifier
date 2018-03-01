@@ -1,4 +1,5 @@
 function [ MScell,nameCell ] = MatFile2MSs()
+    % convert MS1 file with many samples
     [fn,fp,index] = uigetfile('*.csv','please select MS file...');
     if index
         x = importdata(strcat(fp,fn));
