@@ -17,11 +17,10 @@ function [ MScell,nameCell ] = MatFile2MSs()
                 nameCell{m} = x.textdata{start};
             end
         else
-            return;
+            error('File Format Error!');
         end
     else
-        disp('No file selected!');
-        return;
+        error('No file selected!');
     end
 end
 
