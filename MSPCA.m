@@ -81,13 +81,34 @@ classdef MSPCA < handle
             end
         end
         
+        function subMSLoc(obj,MSLoc)
+            MSLoc = round(MSLoc/obj.accuracy) * obj.accuracy;
+            index = find(abs(obj.peakLocations - MSLoc)<obj.accuracy,1);
+            if ~isempty(index)              
+                fprintf(1,'Peak Loc: %.3f has been substrated\n',obj.peakLocations(index));
+                obj.peakLocations(index)=[];
+                obj.MSMat(:,index)=[];
+            end
+        end
+        
         function addMSFile(obj)
             [msCell,nameCell] = MatFile2MSs();       
             L = length(msCell);
             fprintf(1,'Add %d MS\n',L);
             for m = 1:1:L
                 obj.addMS(msCell{m}(:,1),msCell{m}(:,2),nameCell{m});
-            end          
+            end
+            choice = questdlg('Do you want to substrate background?','MSPCA','Yes','No','No');
+            if strcmp(choice,'Yes')
+                [fn,fp,index] = uigetfile('*.csv','please select MS file...');
+                if index
+                    x = importdata(strcat(fp,fn));
+                    msLoc = x.data;
+                    for m = msLoc'
+                        obj.subMSLoc(m);
+                    end
+                end
+            end
         end
         
         function [raw,pksLoc,pksInts] = getMSById(obj,index)
