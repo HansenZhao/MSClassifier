@@ -100,13 +100,29 @@ classdef MSPCA < handle
             end
             choice = questdlg('Do you want to substrate background?','MSPCA','Yes','No','No');
             if strcmp(choice,'Yes')
-                [fn,fp,index] = uigetfile('*.csv','please select MS file...');
-                if index
-                    x = importdata(strcat(fp,fn));
-                    msLoc = x.data;
-                    for m = msLoc'
-                        obj.subMSLoc(m);
+                [msCell,~] = MatFile2MSs();
+                [~,locSet] = obj.findValidPeaks(msCell{1}(:,2),msCell{1}(:,1));
+                if length(msCell) > 1
+                    locSet = round(locSet/obj.accuracy)*obj.accuracy;
+                    choice = questdlg('More than 1 columns were detected,which operation do you want?','MSPCA','intersect','union','intersect');
+                    if strcmp(choice,'intersect')
+                        for m = 2:1:length(msCell)
+                            [~,tmp] = obj.findValidPeaks(msCell{m}(:,2),msCell{m}(:,1));
+                            tmp = round(tmp/obj.accuracy)*obj.accuracy;
+                            locSet = intersect(tmp,locSet);
+                        end
+                    elseif strcmp(choice,'union')
+                        for m = 1:1:length(msCell)
+                            [~,tmp] = obj.findValidPeaks(msCell{m}(:,2),msCell{m}(:,1));
+                            tmp = round(tmp/obj.accuracy)*obj.accuracy;
+                            locSet = union(tmp,locSet);
+                        end
+                    else
+                        return;
                     end
+                end
+                for m = locSet'
+                    obj.subMSLoc(m);
                 end
             end
         end
