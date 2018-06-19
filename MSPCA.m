@@ -176,8 +176,8 @@ classdef MSPCA < handle
             for m = 1:1:obj.nMS
                 text(textPos(m,1),textPos(m,2),obj.MSName{m});
             end
-            xlabel('PC1');
-            ylabel('PC2');
+            xlabel(sprintf('PC1 (%.2f %%)',100*latent(1)/sum(latent)));
+            ylabel(sprintf('PC2 (%.2f %%)',100*latent(2)/sum(latent)));
             figure;
             scatter3(score(:,1),score(:,2),score(:,3),10,'filled');
             box on;
@@ -189,14 +189,16 @@ classdef MSPCA < handle
                 text(textPos(m,1),textPos(m,2),textPos(m,3),obj.MSName{m});
             end
             
-            figure;
+            figure; ha = gca;
             for m = 1:1:max(tag)
                 scatter(score(tag==m,1),score(tag==m,2),10,'filled');
+                %drawConfiInter(ha,score(tag==m,1:2));
                 hold on;
             end
+            %drawConfiInter(ha,score(tag==m,1:2));
             box on;
-            xlabel('PC1');
-            ylabel('PC2');
+            xlabel(sprintf('PC1 (%.2f %%)',100*latent(1)/sum(latent)));
+            ylabel(sprintf('PC2 (%.2f %%)',100*latent(2)/sum(latent)));
             title(strcat('Total info:',32,num2str(sum(latent(1:2))/sum(latent))));
             figure;
             for m = 1:1:max(tag)
@@ -288,6 +290,35 @@ classdef MSPCA < handle
                         'FontSize',8,'Color',cm(m,:));
                 end
             end
+        end
+        
+        function coefScatter(obj,coeff,markTor)
+            cm = [1,0,0;0,0,1];
+            figure;
+            scatter(coeff(:,1),coeff(:,2),10,'filled');
+            xlabel('PC1'); ylabel('PC2');
+            if markTor < 1
+                ratio = abs(coeff)./repmat(max(abs(coeff)),size(coeff,1),1);
+                I = find(max(ratio,[],2)>markTor);
+            elseif mod(markTor,1)==0
+                maxValue = max(abs(coeff(:,1:2)),[],2);
+                [~,I] = sort(maxValue,'descend');
+                I = I(1:markTor);
+            else
+                disp('Invalid markTor!');
+            end
+            hold on;
+      
+            L = length(I);
+            for m = 1:1:L
+                text(coeff(I(m),1),coeff(I(m),2),num2str(obj.pks(I(m))),...
+                    'FontSize',8);
+            end
+            line([min(coeff(:,1))-0.5*range(coeff(:,1)),...
+                max(coeff(:,1))+0.5*range(coeff(:,1))],[0,0],'Color','r','LineStyle','--');
+            line([0,0],[min(coeff(:,2))-0.5*range(coeff(:,2)),...
+                max(coeff(:,2))+0.5*range(coeff(:,1))],'Color','r','LineStyle','--');
+
         end
         
         function plotMSByName(obj,name,hAxes)
