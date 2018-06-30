@@ -91,12 +91,20 @@ classdef MSPCA < handle
             end
         end
         
-        function addMSFile(obj)
+        function addMSFile(obj,isView)
+            if nargin == 1
+                isView = 0;
+            end
             [msCell,nameCell] = MatFile2MSs();       
             L = length(msCell);
             fprintf(1,'Add %d MS\n',L);
             for m = 1:1:L
                 obj.addMS(msCell{m}(:,1),msCell{m}(:,2),nameCell{m});
+                if isView
+                    figure('Position',[0,0,800,200]);
+                    plot(msCell{m}(:,1),msCell{m}(:,2));
+                    title(nameCell{m});
+                end
             end
             choice = questdlg('Do you want to substrate background?','MSPCA','Yes','No','No');
             if strcmp(choice,'Yes')
@@ -140,7 +148,10 @@ classdef MSPCA < handle
         function [raw,pksLoc,pksInts] = getMSByName(obj,name)
             index = find(strcmp(obj.MSName,name));
             if isempty(index)
-                fprintf(1,'No MS found named %s',name);
+                fprintf(1,'No MS found named %s\n',name);
+                raw = [];
+                pksLoc = [];
+                pksInts = [];
             else
                 [raw,pksLoc,pksInts] = obj.getMSById(index);
             end
@@ -153,9 +164,9 @@ classdef MSPCA < handle
             obj.MSMat(1:obj.nMS,1:obj.nPeaks) = tmp;
         end
         
-        function [names,tag] = getTag(obj)
+        function [names,tag,dic] = getTag(obj)
             names = unique(obj.MSName);
-            tag = nameList2tags(obj.MSName);
+            [tag,dic] = nameList2tags(obj.MSName);
         end
         function [coeff,score,latent] = plotPCA(obj,isNormal,minInfo)
             obj.sortMS();
@@ -170,7 +181,7 @@ classdef MSPCA < handle
             [coeff,score,latent] = pca(x);
             textPos = score + repmat(max(abs(score))*0.02,obj.nMS,1);
             figure;
-            scatter(score(:,1),score(:,2),10,'filled');
+            scatter(score(:,1),score(:,2),15,'filled');
             title(strcat('Total info:',32,num2str(sum(latent(1:2))/sum(latent))));
             box on;
             for m = 1:1:obj.nMS
@@ -234,9 +245,11 @@ classdef MSPCA < handle
             distance = {'cosine','chebychev','euclidean'};
             figure('Position',[0,0,1600,400]);
             for m = 1:1:3
-                Y = tsne(x,'Algorithm','exact','Distance',distance{m});
+                Y = tsne(x,'Algorithm','exact','Distance',distance{m},'Perplexity',5);
                 subplot(1,3,m);
                 gscatter(Y(:,1),Y(:,2),tag);
+                hold on;
+                text(Y(:,1),Y(:,2),obj.MSName);
                 title(distance{m});
             end
                
@@ -298,7 +311,7 @@ classdef MSPCA < handle
             scatter(coeff(:,1),coeff(:,2),10,'filled');
             xlabel('PC1'); ylabel('PC2');
             if markTor < 1
-                ratio = abs(coeff)./repmat(max(abs(coeff)),size(coeff,1),1);
+                ratio = abs(coeff(:,1:2))./repmat(max(abs(coeff(:,1:2))),size(coeff,1),1);
                 I = find(max(ratio,[],2)>markTor);
             elseif mod(markTor,1)==0
                 maxValue = max(abs(coeff(:,1:2)),[],2);

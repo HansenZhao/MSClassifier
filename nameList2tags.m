@@ -1,4 +1,4 @@
-function [ tags ] = nameList2tags( nameCell,fitNum )
+function [ tags,taggerDic ] = nameList2tags( nameCell,fitNum )
     L = length(nameCell);
     if ~exist('fitNum','var')
         fitNum = 1;
@@ -6,13 +6,13 @@ function [ tags ] = nameList2tags( nameCell,fitNum )
     tags = ones(L,1);
     tmpTag = 1;
     tmpStr = nameCell{1}(1:fitNum);
+    taggerDic = containers.Map();
     for m = 2:L
         newStr = nameCell{m}(1:fitNum);
-        if ~strcmp(tmpStr,newStr)
-            tmpTag = tmpTag + 1;
-            tmpStr = newStr;
+        if ~taggerDic.isKey(newStr)
+            taggerDic(newStr) = taggerDic.Count + 1;
         end
-        tags(m) = tmpTag;
+        tags(m) = taggerDic(newStr);
     end
     
 end
