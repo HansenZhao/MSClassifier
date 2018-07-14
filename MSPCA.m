@@ -183,6 +183,7 @@ classdef MSPCA < handle
             res.score = sco;
             res.coeff = coe;
             res.latent = lat;
+            obj.score = sco;
 %             textPos = score + repmat(max(abs(score))*0.02,obj.nMS,1);
 %             figure;
 %             scatter(score(:,1),score(:,2),15,'filled');
@@ -256,22 +257,27 @@ classdef MSPCA < handle
             res = struct();
             res.method = 'tSNE';
             res.score = Y;
+            obj.score = Y;
         end
         
-        function selectDim(obj,maxDim,selectDim,tryTime,GroupTag)
+        function [dim,gd] = selectDim(obj,res,Dim,nSelectDim,tryTime,GroupTag)
             if isempty(obj.score)
                 disp('empty score!');
                 return;
             end
-            groupIndex = 1;
+            dim = 1:nSelectDim;
+            [~,gd] = groupDegree(res.score(:,dim),GroupTag);
+            groupIndex = gd;
             for m = 1:1:tryTime
-                dim = randsample(1:1:maxDim,selectDim);
-                points = obj.score(:,dim);
-                [~,gd] = groupDegree(points,GroupTag);
-                if groupIndex > gd
-                    fprintf(1,'GroupIndex: %.3f\n',gd);
-                    disp(dim);
-                    groupIndex = gd;
+                tdim = randsample(1:1:Dim,nSelectDim);
+                points = res.score(:,tdim);
+                [~,tgd] = groupDegree(points,GroupTag);
+                if groupIndex > tgd
+                    fprintf(1,'GroupIndex: %.3f  ',tgd);
+                    disp(tdim);
+                    groupIndex = tgd;
+                    gd = tgd;
+                    dim = tdim;
                 end
             end         
         end
@@ -348,16 +354,20 @@ classdef MSPCA < handle
             title(name);
         end
         
-        function scatterRes(obj,res,CRegOpt)
+        function scatterRes(obj,res,dim,CRegOpt)
+            if ~exist('dim','var')
+                dim = [1,2];
+            end
             [~,tag,dic] = obj.getTag(); key = dic.keys;
             figure; ha = gca; ha.NextPlot = 'add';
             index = unique(tag); L = length(index);
             c = lines(L);
             for m = 1:L
-                scatter(res.score(tag==index(m),1),res.score(tag==index(m),2),...
+                scatter(res.score(tag==index(m),dim(1)),res.score(tag==index(m),dim(2)),...
                     20,c(m,:),'filled','DisplayName',key{m});
                 if exist('CRegOpt','var')
-                    obj.drawConfReg(ha,res.score(tag==index(m),1:2),c(m,:),...
+                    % ref: http://bbs.pinggu.org/thread-3216247-1-1.html
+                    obj.drawConfReg(ha,res.score(tag==index(m),dim),c(m,:),...
                         CRegOpt.alpha,CRegOpt.dist);
                 end
             end
