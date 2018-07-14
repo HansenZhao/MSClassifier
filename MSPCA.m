@@ -168,91 +168,94 @@ classdef MSPCA < handle
             names = unique(obj.MSName);
             [tag,dic] = nameList2tags(obj.MSName);
         end
-        function [coeff,score,latent] = plotPCA(obj,isNormal,minInfo)
+        
+        function [res] = pPCA(obj,isNormal)
+            res = struct(); res.method = 'PCA';
             obj.sortMS();
-            tag = nameList2tags(obj.MSName);
+%             tag = nameList2tags(obj.MSName);
             x = obj.MSMat(1:obj.nMS,1:obj.nPeaks);
             %%
-            %x = x - repmat(mean(x),obj.nMS,1)./repmat(std(x),obj.nMS,1);
             if isNormal
                 x = x./repmat(max(x,[],2),1,obj.nPeaks);
             end
             %%
-            [coeff,score,latent] = pca(x);
-            textPos = score + repmat(max(abs(score))*0.02,obj.nMS,1);
-            figure;
-            scatter(score(:,1),score(:,2),15,'filled');
-            title(strcat('Total info:',32,num2str(sum(latent(1:2))/sum(latent))));
-            box on;
-            for m = 1:1:obj.nMS
-                text(textPos(m,1),textPos(m,2),obj.MSName{m});
-            end
-            xlabel(sprintf('PC1 (%.2f %%)',100*latent(1)/sum(latent)));
-            ylabel(sprintf('PC2 (%.2f %%)',100*latent(2)/sum(latent)));
-            figure;
-            scatter3(score(:,1),score(:,2),score(:,3),10,'filled');
-            box on;
-            title(strcat('Total info:',32,num2str(sum(latent(1:3))/sum(latent))));
-            xlabel('PC1');
-            ylabel('PC2');
-            zlabel('PC3');
-            for m = 1:1:obj.nMS
-                text(textPos(m,1),textPos(m,2),textPos(m,3),obj.MSName{m});
-            end
-            
-            figure; ha = gca;
-            for m = 1:1:max(tag)
-                scatter(score(tag==m,1),score(tag==m,2),10,'filled');
-                %drawConfiInter(ha,score(tag==m,1:2));
-                hold on;
-            end
-            %drawConfiInter(ha,score(tag==m,1:2));
-            box on;
-            xlabel(sprintf('PC1 (%.2f %%)',100*latent(1)/sum(latent)));
-            ylabel(sprintf('PC2 (%.2f %%)',100*latent(2)/sum(latent)));
-            title(strcat('Total info:',32,num2str(sum(latent(1:2))/sum(latent))));
-            figure;
-            for m = 1:1:max(tag)
-                scatter3(score(tag==m,1),score(tag==m,2),score(tag==m,3),10,'filled');
-                hold on;
-            end
-            box on;
-            xlabel('PC1');
-            ylabel('PC2');
-            zlabel('PC3');
-            title(strcat('Total info:',32,num2str(sum(latent(1:3))/sum(latent))));
-            
-            for m = 1:1:obj.nPeaks
-                if(sum(latent(1:m))/sum(latent) > minInfo)
-                    fprintf(1,'%d dimension for %.3f info\n',m,sum(latent(1:m))/sum(latent));
-                    obj.score = score;
-                    return;
-                end
-            end
+            [coe,sco,lat] = pca(x);
+            res.score = sco;
+            res.coeff = coe;
+            res.latent = lat;
+%             textPos = score + repmat(max(abs(score))*0.02,obj.nMS,1);
+%             figure;
+%             scatter(score(:,1),score(:,2),15,'filled');
+%             title(strcat('Total info:',32,num2str(sum(latent(1:2))/sum(latent))));
+%             box on;
+%             for m = 1:1:obj.nMS
+%                 text(textPos(m,1),textPos(m,2),obj.MSName{m});
+%             end
+%             xlabel(sprintf('PC1 (%.2f %%)',100*latent(1)/sum(latent)));
+%             ylabel(sprintf('PC2 (%.2f %%)',100*latent(2)/sum(latent)));
+%             figure;
+%             scatter3(score(:,1),score(:,2),score(:,3),10,'filled');
+%             box on;
+%             title(strcat('Total info:',32,num2str(sum(latent(1:3))/sum(latent))));
+%             xlabel('PC1');
+%             ylabel('PC2');
+%             zlabel('PC3');
+%             for m = 1:1:obj.nMS
+%                 text(textPos(m,1),textPos(m,2),textPos(m,3),obj.MSName{m});
+%             end
+%             
+%             figure; ha = gca;
+%             for m = 1:1:max(tag)
+%                 scatter(score(tag==m,1),score(tag==m,2),10,'filled');
+%                 %drawConfiInter(ha,score(tag==m,1:2));
+%                 hold on;
+%             end
+%             %drawConfiInter(ha,score(tag==m,1:2));
+%             box on;
+%             xlabel(sprintf('PC1 (%.2f %%)',100*latent(1)/sum(latent)));
+%             ylabel(sprintf('PC2 (%.2f %%)',100*latent(2)/sum(latent)));
+%             title(strcat('Total info:',32,num2str(sum(latent(1:2))/sum(latent))));
+%             figure;
+%             for m = 1:1:max(tag)
+%                 scatter3(score(tag==m,1),score(tag==m,2),score(tag==m,3),10,'filled');
+%                 hold on;
+%             end
+%             box on;
+%             xlabel('PC1');
+%             ylabel('PC2');
+%             zlabel('PC3');
+%             title(strcat('Total info:',32,num2str(sum(latent(1:3))/sum(latent))));
+%             
+%             for m = 1:1:obj.nPeaks
+%                 if(sum(latent(1:m))/sum(latent) > minInfo)
+%                     fprintf(1,'%d dimension for %.3f info\n',m,sum(latent(1:m))/sum(latent));
+%                     obj.score = score;
+%                     return;
+%                 end
+%             end
                
         end
         
-        function [Y] = plotTSNE(obj,isNormal)
+        function [res] = pTSNE(obj,isNormal,perp,dist)
+            if ~exist('perp','var')
+                perp = 10;
+            end
+            if ~exist('dist','var')
+                dist = 'euclidean';
+            end
             obj.sortMS();
-            tag = nameList2tags(obj.MSName);
+%             tag = nameList2tags(obj.MSName);
             x = obj.MSMat(1:obj.nMS,1:obj.nPeaks);
             %%
             %x = x - repmat(mean(x),obj.nMS,1)./repmat(std(x),obj.nMS,1);
             if isNormal
                 x = x./repmat(max(x,[],2),1,obj.nPeaks);
             end
-            %%
-            distance = {'cosine','chebychev','euclidean'};
-            figure('Position',[0,0,1600,400]);
-            for m = 1:1:3
-                Y = tsne(x,'Algorithm','exact','Distance',distance{m},'Perplexity',5);
-                subplot(1,3,m);
-                gscatter(Y(:,1),Y(:,2),tag);
-                hold on;
-                text(Y(:,1),Y(:,2),obj.MSName);
-                title(distance{m});
-            end
-               
+            %%            
+            Y = tsne(x,'Distance',dist,'Perplexity',perp);      
+            res = struct();
+            res.method = 'tSNE';
+            res.score = Y;
         end
         
         function selectDim(obj,maxDim,selectDim,tryTime,GroupTag)
@@ -273,34 +276,36 @@ classdef MSPCA < handle
             end         
         end
         
-        function coefBar(obj,coeff,markTor)
-            cm = [1,0,0;0,0,1];
-            figure;
-            hBar = bar(coeff(:,1:2));
-            hBar(1).FaceColor = cm(1,:);
-            hBar(2).FaceColor = cm(2,:);
-            hBar(1).DisplayName = 'PC1';
-            hBar(2).DisplayName = 'PC2';
-            ids = cell(2,1);
-            if markTor < 1
-                for m = 1:1:2
-                    ids{m} = find(abs(coeff(:,m))>max(abs(coeff(:,m)))*markTor);
+        function coefBar(obj,res,markTor)
+            if strcmp(res.method,'PCA')
+                cm = [1,0,0;0,0,1];
+                figure;
+                hBar = bar(res.coeff(:,1:2));
+                hBar(1).FaceColor = cm(1,:);
+                hBar(2).FaceColor = cm(2,:);
+                hBar(1).DisplayName = 'PC1';
+                hBar(2).DisplayName = 'PC2';
+                ids = cell(2,1);
+                if markTor < 1
+                    for m = 1:1:2
+                        ids{m} = find(abs(res.coeff(:,m))>max(abs(res.coeff(:,m)))*markTor);
+                    end
+                elseif mod(markTor,1)==0
+                    for m = 1:1:2
+                        [~,I] = sort(abs(res.coeff(:,m)),'descend');
+                        ids{m} = I(1:markTor);
+                    end
+                else
+                    disp('Invalid markTor!');
                 end
-            elseif mod(markTor,1)==0
-                for m = 1:1:2
-                    [~,I] = sort(abs(coeff(:,m)),'descend');
-                    ids{m} = I(1:markTor);
-                end
-            else
-                disp('Invalid markTor!');
-            end
-            hold on;
-            for m = 1:2
-                pIndex = ids{m};
-                L = length(pIndex);
-                for n = 1:1:L
-                    text(pIndex(n),coeff(pIndex(n),m),num2str(obj.pks(pIndex(n))),...
-                        'FontSize',8,'Color',cm(m,:));
+                hold on;
+                for m = 1:2
+                    pIndex = ids{m};
+                    L = length(pIndex);
+                    for n = 1:1:L
+                        text(pIndex(n),coeff(pIndex(n),m),num2str(obj.pks(pIndex(n))),...
+                            'FontSize',8,'Color',cm(m,:));
+                    end
                 end
             end
         end
@@ -343,6 +348,25 @@ classdef MSPCA < handle
             title(name);
         end
         
+        function scatterRes(obj,res,CRegOpt)
+            [~,tag,dic] = obj.getTag(); key = dic.keys;
+            figure; ha = gca; ha.NextPlot = 'add';
+            index = unique(tag); L = length(index);
+            c = lines(L);
+            for m = 1:L
+                scatter(res.score(tag==index(m),1),res.score(tag==index(m),2),...
+                    20,c(m,:),'filled','DisplayName',key{m});
+                if exist('CRegOpt','var')
+                    obj.drawConfReg(ha,res.score(tag==index(m),1:2),c(m,:),...
+                        CRegOpt.alpha,CRegOpt.dist);
+                end
+            end
+            if strcmp(res.method,'PCA')
+                xlabel(sprintf('PC1(%.2f%%)',res.latent(1)*100/sum(res.latent)));
+                ylabel(sprintf('PC2(%.2f%%)',res.latent(2)*100/sum(res.latent)));
+            end
+            box on;
+        end
     end
     
     methods(Access = private)
@@ -428,8 +452,7 @@ classdef MSPCA < handle
             end
             
             obj.MSMat(obj.nMS,index) = ints;
-        end
-        
+        end      
         function onPeakAdding(obj,index,loc)
             for m = 1:1:obj.nMS
                 raw = obj.rawMSData{m};
@@ -440,6 +463,32 @@ classdef MSPCA < handle
                     obj.MSMat(m,index) = 0;
                 end
             end
+        end
+        function drawConfReg(obj,ha,data,c,alpha,dist)
+            if ~exist('alpha','var')
+                alpha = 0.05;
+            end
+            if ~exist('dist','var')
+                dist = 'norm';
+            end
+            ha.NextPlot = 'add';
+            meanValue = mean(data);
+            diffMat = data - repmat(meanValue,size(data,1),1);
+            s = inv(cov(data));
+            rd = sum(diffMat*s.*diffMat,2);
+            if strcmp(dist,'norm')
+                r = chi2inv(1-alpha,2);
+            elseif strcmp(dist,'exp')
+                r = prctile(rd,100*(1-alpha));
+            else
+                error('invalid distribution %s',dist);
+            end
+            % draw
+            [V,D] = eig(s);
+            aa = sqrt(r/D(1)); bb = sqrt(r/D(4));
+            t = linspace(0,2*pi,100);
+            xy = V*[aa*cos(t);bb*sin(t)]; xy = xy + repmat(mean(data)',1,100);
+            plot(ha,xy(1,:),xy(2,:),'Color',c,'LineWidth',1);
         end
     end
     
