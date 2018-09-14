@@ -376,6 +376,15 @@ classdef MSPCA < handle
                 ylabel(sprintf('PC2(%.2f%%)',res.latent(2)*100/sum(res.latent)));
             end
             box on;
+            
+            figure; ha = gca; ha.NextPlot = 'add';
+            for m = 1:L
+                I = tag==index(m);
+                scatter(res.score(I,dim(1)),res.score(I,dim(2)),...
+                    20,c(m,:),'filled','DisplayName',key{m});
+                text(res.score(I,dim(1)),res.score(I,dim(2)),obj.MSName(I),'Color',c(m,:));
+            end
+            box on;
         end
     end
     
