@@ -342,7 +342,7 @@ classdef MSPCA < handle
                 max(coeff(:,1))+0.5*range(coeff(:,1))],[0,0],'Color','r','LineStyle','--');
             line([0,0],[min(coeff(:,2))-0.5*range(coeff(:,2)),...
                 max(coeff(:,2))+0.5*range(coeff(:,1))],'Color','r','LineStyle','--');
-
+            box on;
         end
         
         function plotMSByName(obj,name,hAxes)

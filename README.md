@@ -142,16 +142,16 @@ s.coefBar(res,0.5);
 ```
 #### coefScatter
 Plot loading scatter
-+ res: res structure output from pPCA method
++ coeff: coeff from pPCA method
 + markTor: if markTor > 1, mark the largest first markTor peak
 + if 0 < markTor < 1, mark the peaks whose loading weights > maxWeight x markTor
 ```matlab
-coefScatter(res,markTor)
+coefScatter(coeff,markTor)
 ```
 Example:
 ```matlab
-s.coefScatter(res,5);
-s.coefScatter(res,0.5);
+s.coefScatter(res.coeff,5);
+s.coefScatter(res.coeff,0.5);
 ```
 #### plotMSByName
 Plot MS profile by Name
