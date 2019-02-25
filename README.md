@@ -206,7 +206,7 @@ res = s.pPCA(1);
 ### visualize the result
 loading plot
 ```matlab
-s.coefScatter(res, 3)
+s.coefScatter(res.coeff, 3)
 ```
 
 check your original data, use
