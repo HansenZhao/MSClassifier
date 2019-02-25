@@ -2,10 +2,10 @@ classdef MSPCA < handle
     properties
         accuracy;
         minTor;
+        MSName;
     end
     
     properties(Access = private)
-        MSName;
         MSMat;
         rawMSData;
         peakLocations;
@@ -108,6 +108,7 @@ classdef MSPCA < handle
             end
             choice = questdlg('Do you want to substrate background?','MSPCA','Yes','No','No');
             if strcmp(choice,'Yes')
+                %obj.minTor = 0.01;
                 [msCell,~] = MatFile2MSs();
                 [~,locSet] = obj.findValidPeaks(msCell{1}(:,2),msCell{1}(:,1));
                 if length(msCell) > 1
