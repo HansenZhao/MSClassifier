@@ -7,7 +7,7 @@ function [ tags,taggerDic ] = nameList2tags( nameCell,fitNum )
     tmpTag = 1;
     tmpStr = nameCell{1}(1:fitNum);
     taggerDic = containers.Map();
-    for m = 2:L
+    for m = 1:L
         newStr = nameCell{m}(1:fitNum);
         if ~taggerDic.isKey(newStr)
             taggerDic(newStr) = taggerDic.Count + 1;
