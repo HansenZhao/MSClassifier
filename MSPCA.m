@@ -3,9 +3,10 @@ classdef MSPCA < handle
         accuracy;
         minTor;
         MSName;
+        sourceFile;
     end
     
-    properties(Access = private)
+    properties(SetAccess = private)
         MSMat;
         rawMSData;
         peakLocations;
@@ -33,6 +34,7 @@ classdef MSPCA < handle
             obj.MSMat = zeros(15,100);
             obj.peakLocations = zeros(1,100);
             obj.score = [];
+            obj.sourceFile = [];
         end
         
         function nMSCap = get.nMSCapacity(obj)
@@ -60,6 +62,7 @@ classdef MSPCA < handle
         end
         
         function addMS(obj,MSLoc,MSInts,name)
+            MSLoc = MSLoc(:); MSInts = MSInts(:);
             try
                 obj.rawMSData{obj.nMS+1} = [MSLoc,MSInts];
                 obj.MSName{obj.nMS + 1} = name;
@@ -95,7 +98,7 @@ classdef MSPCA < handle
             if nargin == 1
                 isView = 0;
             end
-            [msCell,nameCell] = MatFile2MSs();       
+            [msCell,nameCell,obj.sourceFile] = MatFile2MSs();       
             L = length(msCell);
             fprintf(1,'Add %d MS\n',L);
             for m = 1:1:L
