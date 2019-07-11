@@ -169,7 +169,7 @@ classdef MSPCA < handle
         end
         
         function [names,tag,dic] = getTag(obj)
-            names = unique(obj.MSName);
+            names = obj.MSName;
             [tag,dic] = nameList2tags(obj.MSName);
         end
         
@@ -354,7 +354,7 @@ classdef MSPCA < handle
             if ~exist('hAxes','var')
                 figure; hAxes = axes;
             end
-            plot(hAxes,raw(:,1),raw(:,2));
+            plot(hAxes,raw(:,1),raw(:,2)/max(raw(:,2)));
             title(name);
         end
         
